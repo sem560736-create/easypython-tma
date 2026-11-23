@@ -19,7 +19,9 @@ class Database:
     # ------------------------------------------------------------------ #
     def _connect(self) -> sqlite3.Connection:
         if self._conn is None:
-            self._conn = sqlite3.connect(self.db_path)
+            # check_same_thread=False: FastAPI выполняет синхронные обработчики
+            # в пуле потоков, поэтому соединение переиспользуется из разных потоков.
+            self._conn = sqlite3.connect(self.db_path, check_same_thread=False)
             self._conn.row_factory = sqlite3.Row
         return self._conn
 

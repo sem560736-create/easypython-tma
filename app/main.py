@@ -667,16 +667,11 @@ async def check_lesson_answer(lesson_id: int, payload: Dict):
         db.log_attempt(user_id, lesson_id, answer, is_correct)
         if is_correct:
             db.mark_completed(user_id, lesson_id, points=10)
-            # Получаем обновлённый прогресс
-            student = db.get(user_id)
-            xp = student.get("xp", 0)
-            level = student.get("level", 1)
-            streak = student.get("streak", 0)
-        else:
-            student = db.get(user_id)
-            xp = student.get("xp", 0)
-            level = student.get("level", 1)
-            streak = student.get("streak", 0)
+        # Получаем обновлённый прогресс (создаём ученика при необходимости)
+        student = db.get_or_create(user_id, None, None)
+        xp = student.get("xp", 0)
+        level = student.get("level", 1)
+        streak = student.get("streak", 0)
     else:
         xp, level, streak = 0, 1, 0
     
