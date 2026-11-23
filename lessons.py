@@ -33,8 +33,8 @@ class Lesson:
 
     def check_answer(self, user_answer: str) -> bool:
         """Проверяет, содержит ли ответ пользователя правильный ответ."""
-        normalized_correct = self.correct_answer.strip().lower()
-        normalized_user = user_answer.strip().lower()
+        normalized_correct = self.correct_answer.strip().lower().replace('"', "'")
+        normalized_user = user_answer.strip().lower().replace('"', "'")
 
         # Для заданий с переменными: принимаем любые значения, если структура верная
         lines = [l.strip() for l in normalized_user.splitlines() if l.strip()]
