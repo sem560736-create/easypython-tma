@@ -174,9 +174,12 @@ class Database:
 
         conn = self._connect()
         cur = conn.cursor()
+        # score и xp растут вместе, чтобы и прогресс, и очки отражались реальные
         cur.execute(
-            "UPDATE students SET score = score + ?, completed = ?, last_activity = ? WHERE user_id = ?",
+            "UPDATE students SET score = score + ?, xp = xp + ?, completed = ?, last_activity = ? "
+            "WHERE user_id = ?",
             (
+                points,
                 points,
                 ",".join(str(x) for x in completed),
                 datetime.now().isoformat(timespec="seconds"),

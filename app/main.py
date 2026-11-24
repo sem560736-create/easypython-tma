@@ -595,31 +595,26 @@ async def root():
 async def get_progress(user_id: int = 0):
     if user_id == 0:
         return {
+            "completed": [],
             "completed_count": 0,
             "total_lessons": len(LESSONS),
             "score": 0,
             "streak": 0,
             "xp": 0,
-            "level": 1
+            "level": 1,
+            "user_id": 0
         }
-    student = db.get(user_id)
-    if not student:
-        return {
-            "completed_count": 0,
-            "total_lessons": len(LESSONS),
-            "score": 0,
-            "streak": 0,
-            "xp": 0,
-            "level": 1
-        }
+    student = db.get_or_create(user_id, None, None)
     completed = db.completed_ids(user_id)
     return {
+        "completed": completed,
         "completed_count": len(completed),
         "total_lessons": len(LESSONS),
         "score": student.get("score", 0),
         "streak": student.get("streak", 0),
         "xp": student.get("xp", 0),
-        "level": student.get("level", 1)
+        "level": student.get("level", 1),
+        "user_id": user_id
     }
 
 @app.get("/lessons", response_class=JSONResponse)
@@ -689,6 +684,31 @@ async def check_lesson_answer(lesson_id: int, payload: Dict):
 
 @app.post("/save-progress", response_class=JSONResponse)
 async def save_progress(payload: Dict):
+    user_id = payload.get("user_id", 0)
+    if user_id == 0:
+        return {"status": "error", "message": "user_id required"}
+    
+    completed = payload.get("completed", [])
+    xp = payload.get("xp", 0)
+    level = payload.get("level", 1)
+    streak = payload.get("streak", 0)
+    
+    conn = db._connect()
+    cur = conn.cursor()
+    cur.execute(
+        "UPDATE students SET xp = ?, level = ?, streak = ?, completed = ?, "
+        "last_activity = ? WHERE user_id = ?",
+        (
+            xp,
+            level,
+            streak,
+            ",".join(str(x) for x in completed),
+            datetime.now().isoformat(timespec="seconds"),
+            user_id,
+        ),
+    )
+    conn.commit()
+    
     return {"status": "saved"}
 
 @app.get("/leaderboard", response_class=JSONResponse)
