@@ -14,6 +14,10 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
+# Подключаем Telegram-бота (webhook) к приложению,
+# чтобы маршрут /webhook/{token} существовал даже при запуске app.main:app
+from bot_webhook import mount as mount_bot_webhook
+
 from lessons import LESSONS, GLOSSARY
 from database import Database
 
@@ -696,6 +700,9 @@ async def get_leaderboard():
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+# Подключаем Telegram-бота (webhook), чтобы маршрут /webhook/{token} существовал
+bot_bot = mount_bot_webhook(app)
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
