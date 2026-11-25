@@ -45,21 +45,30 @@ if not BOT_TOKEN:
 # Обработчики команд бота
 # --------------------------------------------------------------------------- #
 async def _cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Приветствие + кнопка открытия Mini App."""
+    """Минимальное приветствие с кнопкой открытия Mini App."""
     keyboard = [[InlineKeyboardButton(
         text="🐍 Открыть EasyPython",
         web_app=WebAppInfo(url=WEB_APP_URL),
     )]]
     await update.message.reply_text(
-        "Привет! Я EasyPython — учитель Python в стиле Duolingo.\n\n"
-        "Нажмите кнопку ниже, чтобы открыть приложение и начать учиться:",
+        "EasyPython — жми кнопку ниже, чтобы открыть приложение и начать учиться.",
         reply_markup=InlineKeyboardMarkup(keyboard),
     )
 
 
 async def _cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Полная справка по боту и Mini App."""
     await update.message.reply_text(
-        "Команды:\n/start — открыть приложение EasyPython\n/help — помощь"
+        "📘 EasyPython — обучение Python в формате Mini App.\n\n"
+        "Как пользоваться:\n"
+        "1. Нажми /start и открой Mini App кнопкой «🐍 Открыть EasyPython».\n"
+        "2. Пройди уроки, решай задачи и набирай очки.\n"
+        "3. Твой прогресс сохраняется в приложении.\n\n"
+        "Команды:\n"
+        "/start — открыть приложение EasyPython\n"
+        "/help — эта справка\n\n"
+        "Всё обучение проходит внутри Mini App.\n"
+        "Если что-то не работает — напиши в поддержку."
     )
 
 

@@ -33,22 +33,29 @@ def _build_application():
     from telegram.ext import Application, CommandHandler
 
     async def cmd_start(update, context):
-        """Приветствие + кнопка открытия Mini App."""
+        """Минимальное приветствие с кнопкой открытия Mini App."""
         keyboard = [[InlineKeyboardButton(
             text="🐍 Открыть EasyPython",
             web_app=WebAppInfo(url=WEB_APP_URL),
         )]]
         await update.message.reply_text(
-            "Привет! Я EasyPython — учитель Python в стиле Duolingo.\n\n"
-            "Нажми кнопку ниже, чтобы открыть приложение и начать учиться:",
+            "EasyPython — жми кнопку ниже, чтобы открыть приложение и начать учиться.",
             reply_markup=InlineKeyboardMarkup(keyboard),
         )
 
     async def cmd_help(update, context):
+        """Полная справка по боту и Mini App."""
         await update.message.reply_text(
+            "📘 EasyPython — обучение Python в формате Mini App.\n\n"
+            "Как пользоваться:\n"
+            "1. Нажми /start и открой Mini App кнопкой «🐍 Открыть EasyPython».\n"
+            "2. Пройди уроки, решай задачи и набирай очки.\n"
+            "3. Твой прогресс сохраняется в приложении.\n\n"
             "Команды:\n"
             "/start — открыть приложение EasyPython\n"
-            "/help — помощь"
+            "/help — эта справка\n\n"
+            "Всё обучение проходит внутри Mini App.\n"
+            "Если что-то не работает — напиши в поддержку."
         )
 
     async def on_error(update, context):
