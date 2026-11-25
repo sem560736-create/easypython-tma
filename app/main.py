@@ -9,7 +9,7 @@ from datetime import datetime
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
@@ -40,9 +40,9 @@ if os.path.isdir(static_dir):
 db_path = os.environ.get("DB_PATH", os.path.join(os.path.dirname(__file__), "students.db"))
 db = Database(db_path)
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/", response_class=FileResponse)
 async def root():
-    return HTMLResponse("""
+    return FileResponse("index.html")
 <!DOCTYPE html>
 <html lang="ru">
 <head>
