@@ -224,22 +224,48 @@ function escapeHtml(s) {
     return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-// Turns plain text into paragraphs/bullets, with `inline code` support.
+// Turns plain text into HTML: bullet runs become <ul>, other lines become <p>.
 function renderParagraphs(text) {
-    const blocks = text.split(/\n{2,}/).filter(b => b.trim());
-    return blocks.map(block => {
-        block = block.trim();
+    const lines = text.split('\n');
+    const html = [];
+    let para = [];
+    let list = [];
 
-        // Bullet list (lines starting with •, -, *)
-        if (/^[•\-*]\s/m.test(block) && block.split('\n').every(l => !l.trim() || /^[•\-*]\s/.test(l.trim()))) {
-            const items = block.split('\n')
-                .map(l => l.trim().replace(/^[•\-*]\s*/, ''))
-                .filter(l => l);
-            return `<ul>${items.map(it => `<li>${inline(it)}</li>`).join('')}</ul>`;
+    const flushPara = () => {
+        if (para.length) {
+            html.push(`<p>${para.map(l => inline(l.trim())).join('<br>')}</p>`);
+            para = [];
+        }
+    };
+    const flushList = () => {
+        if (list.length) {
+            html.push(`<ul>${list.map(it => `<li>${inline(it)}</li>`).join('')}</ul>`);
+            list = [];
+        }
+    };
+
+    for (const raw of lines) {
+        const line = raw.trim();
+        const isBullet = /^[•\-*]\s+/.test(line);
+
+        if (!line) {
+            flushPara();
+            flushList();
+            continue;
         }
 
-        return `<p>${inline(block)}</p>`;
-    }).join('');
+        if (isBullet) {
+            flushPara();
+            list.push(line.replace(/^[•\-*]\s+/, ''));
+        } else {
+            flushList();
+            para.push(line);
+        }
+    }
+    flushPara();
+    flushList();
+
+    return html.join('');
 }
 
 // Escapes HTML then converts `code`, **bold** and newlines.
