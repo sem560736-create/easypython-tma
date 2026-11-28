@@ -182,8 +182,8 @@ function getLessonDesc(id) {
     return descs[id] || 'Python урок';
 }
 
-// Open lesson detail view
-function openLesson(lessonId) {
+// Open lesson detail view — fetch full lesson content from the API
+async function openLesson(lessonId) {
     const lesson = lessons.find(l => l.id === lessonId);
     if (!lesson) return;
 
@@ -195,13 +195,85 @@ function openLesson(lessonId) {
     if (detailKicker) detailKicker.textContent = `Урок ${lessonId}`;
     if (detailTitle) detailTitle.textContent = lesson.title || `Урок ${lessonId}`;
     if (detailXp) detailXp.textContent = `+10 XP`;
-    if (detailTheory) detailTheory.textContent = lesson.theory || `Теория урока ${lessonId}`;
-    if (detailExercise) detailExercise.textContent = lesson.exercise || `Напишите код для урока ${lessonId}`;
-    if (detailHint) detailHint.textContent = lesson.hint || 'Подсказка скоро будет';
+    if (detailTheory) detailTheory.innerHTML = 'Загружаю теорию…';
+    if (detailExercise) detailExercise.innerHTML = 'Загружаю задание…';
+    if (detailHint) detailHint.innerHTML = '';
+
+    try {
+        const resp = await fetch(`/lesson/${lessonId}`);
+        const data = await resp.json();
+
+        if (detailTheory) detailTheory.innerHTML = renderTheory(data.theory || '');
+        if (detailExercise) detailExercise.innerHTML = renderTheory(data.exercise || '');
+        if (detailHint) detailHint.innerHTML = data.hint || '';
+    } catch (e) {
+        console.error('Load lesson error:', e);
+        if (detailTheory) detailTheory.innerHTML = `Теория урока ${lessonId}`;
+        if (detailExercise) detailExercise.innerHTML = `Напишите код для урока ${lessonId}`;
+    }
+
     if (answerInput) answerInput.value = '';
     if (resultMessage) resultMessage.innerHTML = '';
     if (prevLessonBtn) prevLessonBtn.hidden = lessonId <= 1;
     if (nextLessonBtn) nextLessonBtn.hidden = isCompletedOrLocked(lessonId + 1);
+}
+
+// Render lesson content: converts markdown-ish blocks to HTML.
+// Supports ```python ... ``` code blocks, `inline code`, bullets and paragraphs.
+function escapeHtml(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// Turns plain text into paragraphs/bullets, with `inline code` support.
+function renderParagraphs(text) {
+    const blocks = text.split(/\n{2,}/).filter(b => b.trim());
+    return blocks.map(block => {
+        block = block.trim();
+
+        // Bullet list (lines starting with •, -, *)
+        if (/^[•\-*]\s/m.test(block) && block.split('\n').every(l => !l.trim() || /^[•\-*]\s/.test(l.trim()))) {
+            const items = block.split('\n')
+                .map(l => l.trim().replace(/^[•\-*]\s*/, ''))
+                .filter(l => l);
+            return `<ul>${items.map(it => `<li>${inline(it)}</li>`).join('')}</ul>`;
+        }
+
+        return `<p>${inline(block)}</p>`;
+    }).join('');
+}
+
+// Escapes HTML then converts `code`, **bold** and newlines.
+function inline(text) {
+    let s = escapeHtml(text);
+    s = s.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+    s = s.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+    s = s.replace(/\n/g, '<br>');
+    return s;
+}
+
+function renderTheory(text) {
+    if (!text) return '';
+
+    const fence = /```([\w+-]*)\n?([\s\S]*?)```/g;
+    let html = '';
+    let lastIndex = 0;
+    let m;
+
+    while ((m = fence.exec(text)) !== null) {
+        const before = text.slice(lastIndex, m.index);
+        if (before.trim()) html += renderParagraphs(before);
+
+        const code = (m[2] || '').replace(/\n$/, '');
+        if (code.trim()) {
+            html += `<div class="code-block">${escapeHtml(code.trim())}</div>`;
+        }
+        lastIndex = fence.lastIndex;
+    }
+
+    const tail = text.slice(lastIndex);
+    if (tail.trim()) html += renderParagraphs(tail);
+
+    return html;
 }
 
 // Check if a lesson is completed or locked

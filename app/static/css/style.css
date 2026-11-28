@@ -285,6 +285,18 @@ section.badges-wrap, section.lessons-wrap { padding: 0 16px 24px; }
 
 .theory-content { padding: 16px; font-size: 0.9rem; line-height: 1.7; color: #37474f; }
 .theory-content p { margin: 0 0 12px; }
+.theory-content ul { margin: 0 0 12px; padding-left: 20px; }
+.theory-content li { margin: 0 0 6px; }
+.theory-content code {
+    background: #eceff1;
+    color: #c62828;
+    border-radius: 5px;
+    padding: 1px 6px;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 0.85em;
+    word-break: break-word;
+}
+.theory-content strong { color: #1a1a2e; }
 .theory-content .code-block {
     background: #1e1e1e;
     color: #d4d4d4;
